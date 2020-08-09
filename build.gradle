@@ -1,0 +1,111 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+buildscript {
+    dependencies {
+        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
+        classpath "com.gradle:build-scan-plugin:1.11"
+    }
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+}
+
+
+apply plugin: "com.gradle.build-scan"
+apply plugin: 'java'
+//apply plugin: 'idea'
+apply plugin: 'application'
+apply plugin: 'javafx-gradle-plugin'
+apply plugin: 'war' // for build excludes
+
+sourceSets {
+    main {
+        resources {
+            exclude 'Outputs/**'
+        }
+    }
+}
+
+jar.enabled = false
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+mainClassName = "Main"
+
+repositories{
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    jcenter()
+    mavenCentral()
+}
+
+jar {
+    zip64 = true
+}
+
+ext {
+
+    if (Os.isFamily(Os.FAMILY_UNIX)) {
+        os = 'linux'
+    }
+    if (Os.isFamily(Os.FAMILY_MAC)) {
+        os = 'macosx'
+    }
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        os = 'windows'
+    }
+    arch = System.getProperty("os.arch")
+
+    if(arch == 'amd64'){
+        arch = 'x86_64'
+    }
+    opencvBinaryClassifer = os+'-'+arch
+
+}
+
+dependencies {
+
+    // Local libraries
+    compile fileTree('lib')
+
+    // General
+    compile group: 'colt', name: 'colt', version: '1.2.0'
+    compile group: 'com.google.guava', name: 'guava', version: '23.3-jre'
+    compile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
+
+    // Tesseract - ocr
+    compile group: 'org.bytedeco.javacpp-presets', name: 'tesseract', version: '3.04.01-1.3'
+    compile group: 'org.bytedeco.javacpp-presets', name: 'tesseract', version: '3.04.01-1.3', classifier: opencvBinaryClassifer
+    compile group: 'org.bytedeco.javacpp-presets', name: 'leptonica', version: '1.73-1.3', classifier: opencvBinaryClassifer
+    compile group: 'org.languagetool', name: 'language-en', version: '3.8'
+
+    // Testing
+    testCompile group: 'org.loadui', name: 'testFx', version: '3.1.2'
+    testCompile group: 'org.testfx', name: 'testfx-core', version: '4.0.8-alpha'
+    compile group: 'junit', name: 'junit', version: '4.12'
+}
+
+// jar {
+//     baseName = "Maps R Us"
+//     manifest {
+//         attributes 'Main-Class': 'Main'
+//     }
+// }
+// test {
+//     testLogging.showStandardStreams = true
+// }
+
+jfx{
+    verbose = true
+    appName = "VideoText Extractor"
+    mainClass = 'Main'
+    vendor = 'Nikiforos Archakis'
+    //bundler = 'windows.app'
+    updateExistingJar = true
+    //allPermissions = false
+    manifestAttributes = ['Main-Class':'Main' ] 
+//    bundleArguments = [
+//            'runtime': 'C:\\Program Files\\Java\\jdk1.8.0_144\\jre'
+//    ]
+}
